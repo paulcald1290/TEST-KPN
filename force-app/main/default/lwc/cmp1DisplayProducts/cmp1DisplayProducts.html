@@ -1,0 +1,15 @@
+<template>
+        <div style="height: 300px;" class="slds-tabs_card">
+            <lightning-datatable
+                    record-id={recordId}
+                    key-field="id"
+                    data={data}
+                    columns={columns}
+                    column-widths-mode="auto"
+                    hide-checkbox-column="true"  
+                    onrowaction={handleRowAction}>
+                    <c-cmp-2-display-products onrefresh={refreshData}></c-cmp-2-display-products>
+            </lightning-datatable>
+        </div>
+    
+</template>
