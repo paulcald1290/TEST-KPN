@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>This is the lightning message channel used to communicate between the two LWC.</description>
+    <isExposed>true</isExposed>
+    <lightningMessageFields>
+        <description>For refresh view event.</description>
+        <fieldName>refreshCMP2</fieldName>
+    </lightningMessageFields>
+    <masterLabel>UpdatedOrderItems</masterLabel>
+</LightningMessageChannel>

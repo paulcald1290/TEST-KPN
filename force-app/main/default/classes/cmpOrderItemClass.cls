@@ -1,18 +1,10 @@
-    public with sharing class cmpHelperClass {
+    global with sharing class cmpOrderItemClass {
+        
     public static boolean output = false;
-
-        @AuraEnabled(cacheable=true)
-        public static List<PricebookEntry> getProductsByOrderId(String orderId) {
-
-            Order ord = [SELECT Id, Pricebook2Id FROM Order WHERE Id=:orderId];
-            return [SELECT Id, Name, Product2Id, UnitPrice FROM PricebookEntry 
-                    WHERE Pricebook2Id =: ord.Pricebook2Id AND IsActive = true];
-        }
     
         @AuraEnabled
-        public static Boolean checkExistenceProduct(String priceBookId) {
-        
-            List<OrderItem> ord = [SELECT Id FROM OrderItem WHERE PricebookEntryId=:priceBookId];
+        public static Boolean checkExistenceProduct(String orderId, String priceBookId) {
+            List<OrderItem> ord = [SELECT Id FROM OrderItem WHERE PricebookEntryId=:priceBookId AND OrderId=:orderId];
             
             if (ord.size() > 0) {
                 output = true;
@@ -21,24 +13,23 @@
         }
 
         @AuraEnabled
-        public static boolean updateOrderitem(String orderId, String product2Id) {
+        public static Boolean updateOrderitem(String orderId, String product2Id) {
             OrderItem itemInOrder = [SELECT Id, Quantity FROM OrderItem WHERE OrderId =:orderId AND Product2Id =:product2Id];
             itemInOrder.Quantity += 1;
             
             try {
                 upsert itemInOrder;
-                system.debug(itemInOrder);
                 output = true;
                 return output;
             }
             catch (Exception e) {
-                system.debug(e.getMessage());
+                system.debug('Error in updateOrderitem Method ' + e.getMessage());
             }
             return output;
         }   
 
         @AuraEnabled
-        public static boolean insertOrderItem(String orderId, Decimal unitprice,String pricebookEntryId, String product2Id ) {
+        public static Boolean insertOrderItem(String orderId, Decimal unitprice,String pricebookEntryId, String product2Id ) {
             OrderItem ordIte = New OrderItem();
             ordIte.ListPrice = unitprice;
             ordIte.OrderId = orderId;
@@ -53,13 +44,13 @@
                 return output;
             }
             catch (Exception e) {
-                system.debug(e.getMessage());
+                system.debug('Error in insertOrderItem Method ' + e.getMessage());
             }
             return output;
         }
 
-        @AuraEnabled(cacheable=true)
+        @AuraEnabled
         public static List<OrderItem> getAllOrderItems(String orderId) {
-            return [SELECT Id ,Product2.Name ,Quantity ,UnitPrice ,TotalPrice  FROM OrderItem WHERE OrderId =:orderId];
+            return [SELECT Id ,Product2.Name ,Quantity ,UnitPrice ,TotalPrice,Product2.ProductCode  FROM OrderItem WHERE OrderId =:orderId ORDER BY Product2.Name ASC];
         } 
 }

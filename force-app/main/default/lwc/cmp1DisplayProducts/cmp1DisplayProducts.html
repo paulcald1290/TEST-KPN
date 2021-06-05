@@ -1,15 +1,20 @@
 <template>
-        <div style="height: 300px;" class="slds-tabs_card">
-            <lightning-datatable
-                    record-id={recordId}
-                    key-field="id"
-                    data={data}
-                    columns={columns}
-                    column-widths-mode="auto"
-                    hide-checkbox-column="true"  
-                    onrowaction={handleRowAction}>
-                    <c-cmp-2-display-products onrefresh={refreshData}></c-cmp-2-display-products>
-            </lightning-datatable>
+        <div class="slds-tabs_card ">
+                <div class="slds-p-around_medium lgc-bg slds-theme_shade">
+                        <div class="slds-text-heading_medium"><strong>Products Available</strong></div>
+                </div>
+                <div style="height: 300px;" >
+                        <lightning-datatable
+                                record-id={recordId}
+                                key-field="id"
+                                data={data}
+                                columns={columns}
+                                column-widths-mode="auto"
+                                hide-checkbox-column="true"  
+                                resize-column-disabled="true"	
+                                onrowaction={handleRowAction}>
+                                <c-cmp-2-display-products onrefresh={refreshData}></c-cmp-2-display-products>
+                        </lightning-datatable>
+                </div>
         </div>
-    
 </template>

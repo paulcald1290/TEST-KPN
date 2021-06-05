@@ -1,21 +1,21 @@
 import { LightningElement,wire,api } from 'lwc';
-import { getRecordNotifyChange,updateRecord } from 'lightning/uiRecordApi';
-import getProductsByOrderId from '@salesforce/apex/cmpHelperClass.getProductsByOrderId';
-import checkExistenceProduct from '@salesforce/apex/cmpHelperClass.checkExistenceProduct';
-import updateOrderitem from '@salesforce/apex/cmpHelperClass.updateOrderitem';
-import insertOrderItem from '@salesforce/apex/cmpHelperClass.insertOrderItem';
+import { getRecordNotifyChange} from 'lightning/uiRecordApi';
+import getProductsByOrderId from '@salesforce/apex/cmpPriceBookClass.getProductsByOrderId';
+import checkExistenceProduct from '@salesforce/apex/cmpOrderItemClass.checkExistenceProduct';
+import updateOrderitem from '@salesforce/apex/cmpOrderItemClass.updateOrderitem';
+import insertOrderItem from '@salesforce/apex/cmpOrderItemClass.insertOrderItem';
+import { MessageContext, publish } from 'lightning/messageService';
+import updateMessageChannel from '@salesforce/messageChannel/UpdatedOrderItems__c';
 
 const columns = [
-    
     { label: 'Name', fieldName: 'Name' },
-    { label: 'List Price', fieldName: 'unitPrice', type: 'currency'},
-    {type: "button", label: 'Actions', typeAttributes: {  
+    { label: 'List Price', fieldName: 'unitPrice', type: 'currency',cellAttributes: { alignment: 'left' }},
+    {type: "button", label: 'Actions', fixedWidth:145, typeAttributes: {  
         label: 'Add Product',  
         name: 'add_product',   
         disabled: false,  
         value: 'addProd'  
-    }},
-    
+    }},   
 ];
 
 export default class Cmp1DisplayProducts extends LightningElement { 
@@ -23,6 +23,10 @@ export default class Cmp1DisplayProducts extends LightningElement {
     columns = columns;
     record = {};
     @api recordId;
+
+    @wire(MessageContext)
+    messageContext;
+    recordId;
     
     connectedCallback() {
     }
@@ -66,7 +70,7 @@ export default class Cmp1DisplayProducts extends LightningElement {
     }
 
     addProduct(product){
-        checkExistenceProduct({ priceBookId: product.Id })
+        checkExistenceProduct({orderId:this.recordId ,priceBookId: product.Id })
         .then((res) => {
             if (res) {
                 this.updateItem(this.recordId,product);
@@ -74,8 +78,7 @@ export default class Cmp1DisplayProducts extends LightningElement {
             else{
                 this.insertItem(this.recordId,product);
             }
-            console.log('por tirar event');
-            this.dispatchEvent(new CustomEvent('refresh',{ detail: true }));
+            
         })
         .catch((err) => {
             console.log('Ha ocurrido un error en getData ', err);
@@ -85,6 +88,7 @@ export default class Cmp1DisplayProducts extends LightningElement {
     updateItem(recId,product){   
         updateOrderitem({orderId:recId,product2Id: product.product2Id })
         .then((res) => {
+            this.publishLMS();
             this.refreshRecord();
         })
         .catch((err) => {
@@ -98,6 +102,7 @@ export default class Cmp1DisplayProducts extends LightningElement {
             pricebookEntryId: product.Id, 
             product2Id: product.product2Id })
         .then((res) => {
+            this.publishLMS();
             this.refreshRecord();
             
         })
@@ -107,8 +112,14 @@ export default class Cmp1DisplayProducts extends LightningElement {
     }
 
     refreshRecord(){
-        getRecordNotifyChange([{recordId: this.recordId}]);
-        
-        //updateRecord({fields: { recordId: recordId }});
-}
+        getRecordNotifyChange([{recordId: this.recordId}]);       
+    }
+
+    publishLMS() {
+        let flag = true;
+        const message = {
+            refreshCMP2: flag
+        };
+        publish(this.messageContext, updateMessageChannel, message);
+    }
 }
